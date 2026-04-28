@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "public",
+  "outputDirectory": "mazzolli-integrador/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
