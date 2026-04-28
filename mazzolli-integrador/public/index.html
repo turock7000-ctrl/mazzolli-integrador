@@ -778,8 +778,7 @@ function parsearOFX(raw, banco) {
 
   // Fallback: tenta formato OFX sem tags de fechamento (SGML simples)
   if (lancamentos.length === 0) {
-    const linhas = raw.split(/[
-]+/);
+    const linhas = raw.split(/\r?\n/);
     let atual = {};
     linhas.forEach(linha => {
       const m = linha.match(/^<([^>]+)>(.+)$/);
