@@ -207,7 +207,7 @@ tr.row-err td{background:var(--red-bg)}
 
       <div class="s-section">
         <div class="s-label">Extrato bancário</div>
-        <input type="file" id="file-input" accept=".csv,.pdf,.png,.jpg,.jpeg" style="display:none" onchange="handleFile(this)">
+        <input type="file" id="file-input" accept=".csv,.ofx,.ofc,.pdf,.png,.jpg,.jpeg" style="display:none" onchange="handleFile(this)">
         <div class="upload-area" id="drop-area"
           onclick="document.getElementById('file-input').click()"
           ondragover="event.preventDefault();this.classList.add('over')"
@@ -215,7 +215,7 @@ tr.row-err td{background:var(--red-bg)}
           ondrop="event.preventDefault();this.classList.remove('over');handleDrop(event)">
           <div class="u-icon">📄</div>
           <div class="u-title">Arraste ou clique para enviar</div>
-          <div class="u-sub">CSV, PDF ou imagem do extrato</div>
+          <div class="u-sub">OFX, CSV, PDF ou imagem do extrato</div>
           <div class="file-ok" id="file-ok" style="display:none"></div>
         </div>
       </div>
@@ -498,9 +498,14 @@ function carregarArquivo(f) {
   document.getElementById('file-ok').textContent = '✓ '+f.name;
   document.getElementById('file-ok').style.display = 'block';
   arquivoAtual = f;
-  if (f.name.toLowerCase().endsWith('.csv')) {
+  const nome = f.name.toLowerCase();
+  if (nome.endsWith('.csv')) {
     const r = new FileReader();
     r.onload = ev => { csvRaw = ev.target.result; arquivoTipo = 'csv'; verificar(); };
+    r.readAsText(f, 'latin1');
+  } else if (nome.endsWith('.ofx') || nome.endsWith('.ofc')) {
+    const r = new FileReader();
+    r.onload = ev => { csvRaw = ev.target.result; arquivoTipo = 'ofx'; verificar(); };
     r.readAsText(f, 'latin1');
   } else {
     csvRaw = '__pdf__';
@@ -597,7 +602,14 @@ async function processar() {
 
   await wait(400); tick('ps1','ps2');
 
-  if (csvRaw && csvRaw !== '__pdf__') {
+  if (csvRaw && csvRaw !== '__pdf__' && arquivoTipo === 'ofx') {
+    // OFX
+    await wait(400); tick('ps2','ps3');
+    await wait(500); tick('ps3','ps4');
+    await wait(400); tick('ps4','ps5');
+    await wait(300); tick('ps5',null);
+    lancamentos = parsearOFX(csvRaw, banco);
+  } else if (csvRaw && csvRaw !== '__pdf__') {
     // CSV normal
     await wait(500); tick('ps2','ps3');
     await wait(600); tick('ps3','ps4');
@@ -661,7 +673,7 @@ REGRAS IMPORTANTES:
 - Não inclua saldo anterior nem saldo final, apenas os lançamentos
 - Retorne APENAS o JSON array, sem texto adicional, sem markdown, sem explicações`;
 
-  const response = await fetch('/api/claude', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -718,6 +730,76 @@ REGRAS IMPORTANTES:
       fonte: id.fonte
     };
   });
+}
+
+function parsearOFX(raw, banco) {
+  const codEmp = document.getElementById('inp-cod-empresa').value.trim();
+  const lancamentos = [];
+  let idx = 0;
+
+  // Extrai todas as transações do OFX
+  const stmttrns = raw.match(/<STMTTRN>([\s\S]*?)<\/STMTTRN>/gi) || [];
+
+  stmttrns.forEach(trn => {
+    const get = (tag) => {
+      const m = trn.match(new RegExp(`<${tag}>([^<\r\n]+)`, 'i'));
+      return m ? m[1].trim() : '';
+    };
+
+    const dtposted = get('DTPOSTED'); // ex: 20251201
+    const trnamt   = get('TRNAMT');   // ex: -479.80 ou 29.70
+    const memo     = get('MEMO') || get('NAME') || '';
+    const name     = get('NAME') || '';
+    const desc     = memo || name;
+
+    if (!dtposted || !trnamt || !desc) return;
+
+    // Formata data de YYYYMMDD para DD/MM/YYYY
+    const ano  = dtposted.substring(0,4);
+    const mes  = dtposted.substring(4,6);
+    const dia  = dtposted.substring(6,8);
+    const data = `${dia}/${mes}/${ano}`;
+
+    const valor = parseFloat(trnamt.replace(',','.')) || 0;
+    const id    = identificar(desc, banco, codEmp);
+
+    lancamentos.push({
+      id: idx++,
+      data,
+      desc,
+      valor,
+      deb:  id.deb,
+      cred: id.cred,
+      hist: id.hist,
+      conf: id.conf,
+      fonte: id.fonte
+    });
+  });
+
+  // Fallback: tenta formato OFX sem tags de fechamento (SGML simples)
+  if (lancamentos.length === 0) {
+    const linhas = raw.split(/[
+]+/);
+    let atual = {};
+    linhas.forEach(linha => {
+      const m = linha.match(/^<([^>]+)>(.+)$/);
+      if (!m) return;
+      const [, tag, val] = m;
+      const t = tag.toUpperCase();
+      if (t === 'STMTTRN') { atual = {}; return; }
+      if (t === 'DTPOSTED') atual.data = `${val.substring(6,8)}/${val.substring(4,6)}/${val.substring(0,4)}`;
+      if (t === 'TRNAMT')   atual.valor = parseFloat(val.replace(',','.')) || 0;
+      if (t === 'MEMO')     atual.desc = val.trim();
+      if (t === 'NAME' && !atual.desc) atual.desc = val.trim();
+      if (t === '/STMTTRN' && atual.data && atual.valor !== undefined && atual.desc) {
+        const id = identificar(atual.desc, banco, codEmp);
+        lancamentos.push({ id: idx++, ...atual, deb:id.deb, cred:id.cred, hist:id.hist, conf:id.conf, fonte:id.fonte });
+        atual = {};
+      }
+    });
+  }
+
+  return lancamentos;
 }
 
 function parsearCSV(raw, banco) {
