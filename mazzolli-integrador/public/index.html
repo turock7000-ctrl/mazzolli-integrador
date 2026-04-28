@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mazzolli — Integrador Contábil</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --laranja:#F26522;--laranja2:#d4541a;--laranja-light:#fff3ee;--laranja-mid:#fde0d0;
+  --azul:#003B6E;--azul2:#002d55;--azul-light:#e8f0f8;--azul-mid:#b8cfe8;
+  --bg:#f5f7fa;--bg2:#ffffff;--bg3:#f0f2f5;
+  --border:#dde3ec;--border2:#c5cfdc;
+  --text:#1a2640;--text2:#5a6b85;--text3:#9aabbd;
+  --green:#1a8a5a;--green-bg:#e8f5ef;
+  --amber:#c47a00;--amber-bg:#fff8e6;
+  --red:#c0392b;--red-bg:#fdf0ee;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh}
+.mono{font-family:'Courier New',monospace;font-size:12px}
+
+.app{display:grid;grid-template-rows:56px 1fr;height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--azul);display:flex;align-items:center;padding:0 24px;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo-area{display:flex;align-items:center;gap:12px}
+.logo-icon{width:36px;height:36px}
+.logo-text{display:flex;flex-direction:column;line-height:1.1}
+.logo-text{border-left:3px solid #F26522;padding-left:10px}
+.logo-text strong{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:700;color:white;letter-spacing:.06em;display:block}
+.logo-text span{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:500;color:var(--azul-mid);letter-spacing:.22em;text-transform:uppercase;display:block;margin-top:1px}
+.topbar-divider{width:1px;height:24px;background:rgba(255,255,255,.15);margin:0 4px}
+.topbar-subtitle{font-size:11px;color:var(--azul-mid);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-label{font-size:11px;color:var(--azul-mid)}
+.user-select{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:5px 10px;border-radius:6px;font-size:12px;font-family:inherit}
+.user-select option{background:var(--azul);color:white}
+
+/* LAYOUT */
+.body{display:grid;grid-template-columns:268px 1fr;height:calc(100vh - 56px);overflow:hidden}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.content{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg)}
+
+/* SIDEBAR */
+.s-label{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:7px}
+.s-section{display:flex;flex-direction:column}
+.s-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:7px;font-size:12px;font-family:inherit;margin-bottom:7px;transition:border .15s}
+.s-input:last-child{margin-bottom:0}
+.s-input::placeholder{color:var(--text3)}
+.s-input:focus{outline:none;border-color:var(--laranja);background:white}
+.s-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+.upload-area{border:2px dashed var(--border2);border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3)}
+.upload-area:hover,.upload-area.over{border-color:var(--laranja);background:var(--laranja-light)}
+.u-icon{font-size:22px;margin-bottom:6px}
+.u-title{font-size:12px;color:var(--text);font-weight:500;margin-bottom:3px}
+.u-sub{font-size:11px;color:var(--text3)}
+.file-ok{font-size:11px;color:var(--green);margin-top:6px;font-family:'Courier New',monospace;word-break:break-all}
+
+.btn{width:100%;padding:10px;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;letter-spacing:.03em}
+.btn-primary{background:var(--laranja);color:white}
+.btn-primary:hover:not(:disabled){background:var(--laranja2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(242,101,34,.3)}
+.btn-primary:disabled{background:#ddd;color:#aaa;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-success{background:var(--azul);color:white}
+.btn-success:hover:not(:disabled){background:var(--azul2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,59,110,.3)}
+.btn-success:disabled{background:#ddd;color:#aaa;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:transparent;color:var(--azul);border:1px solid var(--azul);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;padding:7px;transition:all .15s}
+.btn-outline:hover{background:var(--azul-light)}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.stat-val{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700}
+.stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
+.c-orange{color:var(--laranja)}.c-blue{color:var(--azul)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}
+
+.divider{border:none;border-top:1px solid var(--border)}
+
+/* EMPTY */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);gap:10px}
+.empty-state .e-icon{font-size:40px;opacity:.35}
+.empty-state p{font-size:13px;color:var(--text2)}
+
+/* TABLE */
+.table-toolbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:white;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.table-toolbar h2{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--azul)}
+.filter-group{display:flex;gap:5px;margin-left:auto}
+.filter-btn{padding:5px 11px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:'Montserrat',sans-serif;font-weight:500;transition:all .15s}
+.filter-btn:hover{border-color:var(--border2)}
+.filter-btn.active{border-color:var(--laranja);color:var(--laranja);background:var(--laranja-light)}
+
+.table-container{flex:1;overflow:auto}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:5}
+th{background:var(--azul-light);padding:8px 12px;text-align:left;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--azul);border-bottom:2px solid var(--azul-mid);white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;background:white}
+tr:hover td{background:var(--laranja-light)}
+tr.row-warn td{background:var(--amber-bg)}
+tr.row-err td{background:var(--red-bg)}
+
+.badge{display:inline-block;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;font-family:'Montserrat',sans-serif;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+
+.cell-val{font-family:'Courier New',monospace;font-size:12px;font-weight:700;white-space:nowrap}
+.cell-val.pos{color:var(--green)}.cell-val.neg{color:var(--red)}
+.cell-desc{font-size:11px;color:var(--text2);max-width:255px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell-date{font-family:'Courier New',monospace;font-size:11px;color:var(--text2)}
+
+.editable{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:11px;width:72px;transition:border .15s}
+.editable:focus{outline:none;border-color:var(--laranja);background:white}
+.editable.warn{border-color:var(--amber);background:var(--amber-bg)}
+.editable.err{border-color:var(--red);background:var(--red-bg)}
+.editable-sm{width:52px}
+
+.table-footer{padding:10px 20px;border-top:2px solid var(--border);background:white;display:flex;align-items:center;gap:16px;font-size:11px;color:var(--text2);flex-shrink:0}
+.ft{font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px}
+
+/* PROCESSING */
+.processing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg)}
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--laranja);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-label{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--azul)}
+.proc-steps{display:flex;flex-direction:column;gap:6px;width:280px}
+.proc-step{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text3)}
+.proc-step.done{color:var(--green)}
+.proc-step.active{color:var(--azul);font-weight:500}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.proc-step.done .sdot{background:var(--green)}
+.proc-step.active .sdot{background:var(--laranja);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ACCENT BAR */
+.accent-bar{height:3px;background:linear-gradient(90deg,var(--laranja),var(--azul));flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo-area">
+      <div class="logo-text">
+        <strong>MAZZOLLI</strong>
+        <span>Contabilidade</span>
+      </div>
+    </div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-subtitle">Integrador de Extratos</div>
+    <div class="topbar-right">
+      <span class="user-label">Operador:</span>
+      <select class="user-select" id="sel-usuario">
+        <option value="">Selecione...</option>
+        <option>Ana</option><option>Carlos</option><option>Fernanda</option>
+        <option>João</option><option>Mariana</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="s-section">
+        <div class="s-label">Empresa cliente</div>
+        <div style="position:relative">
+          <input class="s-input" id="inp-empresa" placeholder="Digite o nome da empresa..." autocomplete="off"
+            oninput="filtrarEmpresas(this.value)" onkeydown="navSugestoes(event)" style="margin-bottom:0">
+          <div id="sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span style="font-size:11px;color:var(--text2);white-space:nowrap">Cód. empresa:</span>
+          <input class="s-input" id="inp-cod-empresa" placeholder="—" style="margin-bottom:0;font-family:'Courier New',monospace;font-weight:600;color:var(--azul);flex:1" oninput="verificar()" readonly>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Banco</div>
+        <select class="s-input" id="inp-banco" onchange="selecionarBanco(this.value)">
+          <option value="">Selecione o banco...</option>
+          <option value="9">Banco Bradesco s/a</option>
+          <option value="23">Banco Sicredi Empresarial</option>
+          <option value="11">Banco Itaú s/a</option>
+          <option value="15">Banco Santander s/a</option>
+          <option value="10">Banco do Brasil s/a</option>
+          <option value="20">Caixa Econômica Federal</option>
+          <option value="4809">Banco Inter S/A</option>
+          <option value="14">Banco Safra s/a</option>
+          <option value="3535">Banco Sicoob</option>
+          <option value="18">Banco Banrisul s/a</option>
+          <option value="4814">Banco BTG Pactual</option>
+          <option value="21">HSBC Bank s/a</option>
+          <option value="4808">Nubank</option>
+          <option value="4817">PagSeguro Internet</option>
+          <option value="2358">Transpocred</option>
+          <option value="2754">Unicred</option>
+          <option value="3019">Asaas Gestão Financ</option>
+          <option value="8">Banco Bilbao Vizcaya</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <span style="font-size:11px;color:var(--text2)">Cód. Qestor:</span>
+          <input class="s-input" id="inp-cod-banco" placeholder="—" style="margin-bottom:0;flex:1;font-family:'Courier New',monospace;font-weight:600;color:var(--azul)" oninput="verificar()" readonly>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="s-section">
+        <div class="s-label">Extrato bancário</div>
+        <input type="file" id="file-input" accept=".csv,.pdf,.png,.jpg,.jpeg" style="display:none" onchange="handleFile(this)">
+        <div class="upload-area" id="drop-area"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="event.preventDefault();this.classList.remove('over');handleDrop(event)">
+          <div class="u-icon">📄</div>
+          <div class="u-title">Arraste ou clique para enviar</div>
+          <div class="u-sub">CSV, PDF ou imagem do extrato</div>
+          <div class="file-ok" id="file-ok" style="display:none"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-proc" onclick="processar()" disabled>
+        Processar extrato
+      </button>
+
+      <hr class="divider">
+
+      <div id="stats-section" style="display:none">
+        <div class="s-label" style="margin-bottom:8px">Resultado</div>
+        <div class="stats" style="margin-bottom:12px">
+          <div class="stat"><div class="stat-val c-blue" id="st-total">0</div><div class="stat-lbl">lançamentos</div></div>
+          <div class="stat"><div class="stat-val c-green" id="st-ok">0</div><div class="stat-lbl">identificados</div></div>
+          <div class="stat"><div class="stat-val c-amber" id="st-rev">0</div><div class="stat-lbl">para revisar</div></div>
+          <div class="stat"><div class="stat-val c-red" id="st-err">0</div><div class="stat-lbl">sem conta</div></div>
+        </div>
+      </div>
+
+      <button class="btn btn-success" id="btn-exp" onclick="exportar()" disabled>
+        ⬇ Exportar CSV para Qestor
+      </button>
+
+      <hr class="divider">
+      <div class="s-section">
+        <div class="s-label">Memória do sistema</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span id="contador-regras">0 regras salvas</span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block" title="Ativo"></span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline" style="flex:1;padding:6px;font-size:11px" onclick="exportarRegras()">⬇ Exportar</button>
+            <label style="flex:1;cursor:pointer">
+              <input type="file" accept=".json" style="display:none" onchange="importarRegras(this.files[0])">
+              <span class="btn btn-outline" style="display:block;padding:6px;font-size:11px;text-align:center">⬆ Importar</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content">
+      <div class="accent-bar"></div>
+      <div class="empty-state">
+        <div class="e-icon">🏦</div>
+        <p>Preencha os dados da empresa e banco</p>
+        <p>e faça upload do extrato bancário</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const REGRAS = [
+  { p:/CELESC/i,                                     deb:'4477',   cred:null,   hist:'251', conf:99 },
+  { p:/CASAN|CIAAGUAS/i,                             deb:'4476',   cred:null,   hist:'275', conf:99 },
+  { p:/^IOF/i,                                       deb:'4933',   cred:null,   hist:'531', conf:99 },
+  { p:/JUROS UTILIZ/i,                               deb:'4933',   cred:null,   hist:'531', conf:99 },
+  { p:/^TARIFA|^TARIFAS/i,                           deb:'4698',   cred:null,   hist:'255', conf:99 },
+  { p:/TARIFA BAIXA/i,                               deb:'4698',   cred:null,   hist:'255', conf:99 },
+  { p:/DOC\/TED INTERNET/i,                          deb:'4698',   cred:null,   hist:'255', conf:99 },
+  { p:/ARRECADACAO ESTADUAL/i,                       deb:'4698',   cred:null,   hist:'255', conf:99 },
+  { p:/^SAQUE/i,                                     deb:'5',      cred:null,   hist:'455', conf:99 },
+  { p:/DEB\. FOLHA|DEB\.FOLHA/i,                    deb:'1634',   cred:null,   hist:'228', conf:99 },
+  { p:/TRANSF ENTRE CONTAS.*FABIANE|FABIANE EMILIA/i,deb:'5020',   cred:null,   hist:'455', conf:99 },
+  { p:/TRANSF ENTRE CONTAS.*VITORIO|VITORIO GRETTER/i,deb:'5019',  cred:null,   hist:'455', conf:99 },
+  { p:/TRANSF ENTRE CONTAS/i,                        deb:'1634',   cred:null,   hist:'228', conf:75 },
+  { p:/DEBITO TED.*04188005106/i,                    deb:'1637',   cred:null,   hist:'455', conf:99 },
+  { p:/DEBITO TED.*34028316/i,                       deb:'5038',   cred:null,   hist:'455', conf:99 },
+  { p:/DEBITO TED/i,                                 deb:'288',    cred:null,   hist:'455', conf:80 },
+  { p:/UNIFIQUE|02255187/i,                          deb:'4478',   cred:null,   hist:'274', conf:99 },
+  { p:/UNIMED/i,                                     deb:'4337',   cred:null,   hist:'455', conf:99 },
+  { p:/FANEZZE/i,                                    deb:'510242', cred:null,   hist:'455', conf:99 },
+  { p:/QUASA/i,                                      deb:'505362', cred:null,   hist:'455', conf:99 },
+  { p:/MITSUI/i,                                     deb:'4548',   cred:null,   hist:'455', conf:99 },
+  { p:/NNB IND/i,                                    deb:'834052', cred:null,   hist:'455', conf:99 },
+  { p:/23190417000160|LIDER E /i,                    deb:'809503', cred:null,   hist:'455', conf:99 },
+  { p:/PITNEY BOWES|06980816/i,                      deb:'576687', cred:null,   hist:'455', conf:99 },
+  { p:/27569968000190/i,                             deb:'785347', cred:null,   hist:'455', conf:99 },
+  { p:/17569240000104/i,                             deb:'663186', cred:null,   hist:'455', conf:99 },
+  { p:/04978404000105|CENTRAL DE GUAR/i,             deb:'515760', cred:null,   hist:'455', conf:99 },
+  { p:/83545061000161|SINDICARGAS/i,                 deb:'1661',   cred:null,   hist:'455', conf:99 },
+  { p:/AYMORE/i,                                     deb:'5051',   cred:null,   hist:'455', conf:99 },
+  { p:/ALELO/i,                                      deb:'522371', cred:null,   hist:'455', conf:99 },
+  { p:/REFRITEC|04591615/i,                          deb:'513206', cred:null,   hist:'455', conf:99 },
+  { p:/LINDACIR|08325360/i,                          deb:'4430',   cred:null,   hist:'455', conf:99 },
+  { p:/VISUAL SET|03998581/i,                        deb:'828968', cred:null,   hist:'455', conf:99 },
+  { p:/PLANO INT CAPITAL/i,                          deb:'1029',   cred:null,   hist:'455', conf:99 },
+  { p:/DEB\.CTA\.FATURA/i,                           deb:'288',    cred:null,   hist:'455', conf:95 },
+  { p:/63240446000103|ALEX MAR/i,                    deb:'5310928',cred:null,   hist:'455', conf:99 },
+  { p:/07994986960|JOCASTA/i,                        deb:'5310929',cred:null,   hist:'455', conf:99 },
+  { p:/5092629|SIRLEI VEIG/i,                        deb:'5092629',cred:null,   hist:'455', conf:99 },
+  { p:/5309813|RACCER/i,                             deb:'5309813',cred:null,   hist:'455', conf:99 },
+  { p:/DCRJ COME|582016/i,                           deb:'582016', cred:null,   hist:'455', conf:99 },
+  { p:/43857909|PERSONALIZZE/i,                      deb:'5158515',cred:null,   hist:'455', conf:99 },
+  { p:/95872768|MAKROBOM/i,                          deb:'4546',   cred:null,   hist:'455', conf:95 },
+  { p:/03804222|CASA DAS EMBAL/i,                    deb:'288',    cred:null,   hist:'455', conf:90 },
+  { p:/00360305000104|CEF MATRIZ/i,                  deb:'1660',   cred:null,   hist:'12',  conf:99 },
+  { p:/DEBITO ARRECADACAO DAS/i,                     deb:'4663',   cred:null,   hist:'287', conf:99 },
+  { p:/DEBITO ARRECADACAO/i,                         deb:'1563',   cred:null,   hist:'455', conf:95 },
+  { p:/RESG\.APLIC/i,                                deb:'BANCO',  cred:'5044', hist:'573', conf:99 },
+  { p:/COMPRAS NACIONAIS POSTO/i,                    deb:'3750',   cred:null,   hist:'455', conf:99 },
+  { p:/COMPRAS NACIONAIS (CONDOR|MASTERCACAU|LAVIE|PANIFICIO|FINA|CACAU|GLORIA)/i, deb:'4546', cred:null, hist:'455', conf:95 },
+  { p:/COMPRAS NACIONAIS MILIUM/i,                   deb:'288',    cred:null,   hist:'455', conf:85 },
+  { p:/COMPRAS NACIONAIS/i,                          deb:'288',    cred:null,   hist:'455', conf:70 },
+  { p:/^PAGAMENTO PIX/i,                             deb:'288',    cred:null,   hist:'455', conf:60 },
+  { p:/REEMBOLSO POS/i,                              deb:'BANCO',  cred:'142',  hist:'461', conf:95 },
+  { p:/LIQ\.COBRANCA|LIQ\.COBRAN/i,                 deb:'BANCO',  cred:'142',  hist:'461', conf:90 },
+  { p:/SICREDI CREDITO VISA/i,                       deb:'BANCO',  cred:'2324', hist:'271', conf:95 },
+  { p:/SICREDI DEBITO/i,                             deb:'BANCO',  cred:'142',  hist:'461', conf:95 },
+  { p:/RECEBIMENTO PIX/i,                            deb:'BANCO',  cred:'142',  hist:'461', conf:95 },
+  { p:/^TED /i,                                      deb:'BANCO',  cred:'142',  hist:'461', conf:90 },
+  { p:/LIQUIDACAO BOLETO.*29464502|NNB/i,            deb:'834052', cred:null,   hist:'455', conf:99 },
+  { p:/LIQUIDACAO BOLETO.*23190417|LIDER/i,          deb:'809503', cred:null,   hist:'455', conf:99 },
+  { p:/LIQUIDACAO BOLETO/i,                          deb:'288',    cred:null,   hist:'455', conf:55 },
+];
+
+function identificar(desc, banco, codEmpresa) {
+  // 1. Verifica aprendizado primeiro (maior prioridade)
+  const aprendido = buscarAprendizado(desc, codEmpresa || '');
+  if (aprendido) {
+    const deb = aprendido.deb === 'BANCO' ? banco : aprendido.deb;
+    const cred = aprendido.cred === 'BANCO' ? banco : aprendido.cred;
+    return { deb, cred, hist: aprendido.hist, conf: 99, fonte: '⚡ aprendido' };
+  }
+  // 2. Regras fixas
+  for (const r of REGRAS) {
+    if (r.p.test(desc)) {
+      const deb = r.deb==='BANCO' ? banco : r.deb;
+      const cred = r.cred==='BANCO' ? banco : (r.cred!==null ? r.cred : banco);
+      return { deb, cred, hist:r.hist, conf:r.conf, fonte:'regra' };
+    }
+  }
+  return { deb:'288', cred:banco, hist:'455', conf:0, fonte:'padrão' };
+}
+
+// PLANO DE CONTAS - extraído do Qestor da Mazzolli
+const PLANO = {
+  3019:'Asaas Gestão Financ', 7:'Banco Abn Amro Real', 16:'Banco Banespa',
+  17:'Banco Banestado', 18:'Banco Banrisul', 19:'Banco Besc',
+  8:'Banco Bilbao Vizcaya', 9:'Banco Bradesco', 4814:'Banco BTG Pactual',
+  10:'Banco do Brasil', 4809:'Banco Inter', 11:'Banco Itaú',
+  12:'Banco Mercantil', 13:'Banco Rural', 14:'Banco Safra',
+  15:'Banco Santander', 3535:'Banco Sicoob', 23:'Banco Sicredi Empresarial',
+  22:'Banco Unibanco', 20:'Caixa Econômica Federal', 21:'HSBC Bank',
+  4808:'Nubank', 4817:'PagSeguro', 2358:'Transpocred', 2754:'Unicred',
+  5:'Caixa', 142:'Clientes Diversos', 288:'Adiant. a Fornecedores',
+  1634:'Salários e Ordenados a Pagar', 1635:'Pró Labore a Pagar',
+  1637:'Pensão Alimentícia', 1660:'FGTS a Recolher',
+  1661:'Contrib. Sindical', 4853:'Simples Nacional',
+  1563:'DCTFWeb a Recolher', 4670:'IOF e IOC',
+  4663:'Impostos e Taxas Diversas', 4656:'Impostos Federais',
+  4657:'Impostos Estaduais', 4658:'Impostos Municipais',
+  4698:'Despesas Bancárias', 4933:'Juros IOF Conta/Corrente',
+  4701:'Juros Pagos', 4476:'Água e Esgoto', 4477:'Energia Elétrica',
+  4478:'Telefone e Internet', 4479:'Correios',
+  4430:'Alugueis e Condomínios', 4431:'Manutenção e Reparos',
+  4546:'Lanches e Refeições', 4537:'Serviços Profissionais',
+  4538:'Honorários Contábeis', 4553:'Entidades e Associações',
+  4042:'Despesas Cartão', 4541:'Bens de Pequeno Valor',
+  4556:'Brindes Concedidos', 4943:'Honorários Advocatícios',
+  4548:'Seguros de Bens', 3750:'Combustíveis e Lubrif.',
+  2324:'Receitas Financeiras s/ Aplic.', 5044:'Sicredi Invest Exclusivo',
+  5036:'Sicredi Invest Evolutivo', 5047:'XP Investimentos',
+  2251:'Banco Sicredi Empresarial (Aplic)', 5019:'Vitório Gretter',
+  5020:'Fabiane E. Gretter', 5038:'Repasse ECT',
+  510242:'Fanezze Embalagens', 505362:'Quasa',
+  834052:'NNB Ind. Material Publicitário', 809503:'Lider Etiquetas',
+  576687:'Pitney Bowes', 785347:'William Holz Advocacia',
+  663186:'Holz Contadores', 515760:'Central de Guarda Docs',
+  1661:'Contrib. Sindical', 5051:'Aymoré Cred Financ',
+  522371:'Alelo Instituição', 513206:'Refritec',
+  4430:'Alugueis e Condomínios', 828968:'Visual Set Computadores',
+  1029:'Sicredi Empresarial (Invest.)', 5310928:'Alex Marschalk ME',
+  5310929:'Jocasta Carneiro Garcia', 5092629:'Sirlei Veiga Eventos',
+  5309813:'Raccer Moto Center', 582016:'Dcrj Chocolates',
+  5158515:'Leticia Rocha dos Santos', 4337:'Assistência Médica',
+};
+
+function nomeConta(cod) {
+  return PLANO[parseInt(cod)] || '';
+}
+
+// ============================================================
+// SISTEMA DE APRENDIZADO - localStorage
+// ============================================================
+
+// Estrutura: { "DESCRICAO_PADRAO": { deb, cred, hist, empresa, count } }
+function carregarAprendizado() {
+  try { return JSON.parse(localStorage.getItem('mzl_regras') || '{}'); } 
+  catch(e) { return {}; }
+}
+
+function salvarAprendizado(regras) {
+  try { localStorage.setItem('mzl_regras', JSON.stringify(regras)); } 
+  catch(e) {}
+}
+
+function chaveDescricao(desc) {
+  // Normaliza a descrição para criar uma chave de busca
+  // Remove CPF/CNPJ (sequências de números longos) e normaliza espaços
+  return desc.toUpperCase()
+    .replace(/\d{11}/g, '') // remove CPF
+    .replace(/\d{14}/g, '') // remove CNPJ
+    .replace(/\d{8,}/g, '') // remove outros números longos
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, 60);
+}
+
+function buscarAprendizado(desc, codEmpresa) {
+  const regras = carregarAprendizado();
+  const chave = chaveDescricao(desc);
+  // Tenta primeiro com empresa específica, depois geral
+  const chaveEmp = `${codEmpresa}::${chave}`;
+  if (regras[chaveEmp]) return { ...regras[chaveEmp], fonte: 'aprendido' };
+  if (regras[chave]) return { ...regras[chave], fonte: 'aprendido' };
+  return null;
+}
+
+function registrarAprendizado(desc, codEmpresa, deb, cred, hist) {
+  const regras = carregarAprendizado();
+  const chave = chaveDescricao(desc);
+  const chaveEmp = `${codEmpresa}::${chave}`;
+  regras[chaveEmp] = { deb, cred, hist, empresa: codEmpresa, count: (regras[chaveEmp]?.count || 0) + 1, ts: Date.now() };
+  // Salva também geral se aparecer em 3+ empresas
+  if (!regras[chave] || regras[chave].count < 3) {
+    regras[chave] = { deb, cred, hist, count: (regras[chave]?.count || 0) + 1, ts: Date.now() };
+  }
+  salvarAprendizado(regras);
+}
+
+function totalRegrasAprendidas() {
+  return Object.keys(carregarAprendizado()).length;
+}
+
+function exportarRegras() {
+  const regras = carregarAprendizado();
+  const blob = new Blob([JSON.stringify(regras, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mazzolli_regras_aprendidas.json';
+  a.click();
+}
+
+function importarRegras(arquivo) {
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const novas = JSON.parse(ev.target.result);
+      const existentes = carregarAprendizado();
+      const merged = { ...existentes, ...novas };
+      salvarAprendizado(merged);
+      atualizarContadorRegras();
+      alert(`✓ ${Object.keys(novas).length} regras importadas com sucesso!`);
+    } catch(e) { alert('Arquivo inválido.'); }
+  };
+  r.readAsText(arquivo);
+}
+
+function atualizarContadorRegras() {
+  const el = document.getElementById('contador-regras');
+  if (el) el.textContent = totalRegrasAprendidas() + ' regras salvas';
+}
+
+let lancamentos=[], filtro='todos', csvRaw=null, arquivoAtual=null, arquivoTipo=null;
+
+function selecionarBanco(cod) {
+  document.getElementById('inp-cod-banco').value = cod;
+  verificar();
+}
+
+function handleFile(inp) { if(inp.files[0]) carregarArquivo(inp.files[0]); }
+function handleDrop(e) { if(e.dataTransfer.files[0]) carregarArquivo(e.dataTransfer.files[0]); }
+
+function carregarArquivo(f) {
+  document.getElementById('file-ok').textContent = '✓ '+f.name;
+  document.getElementById('file-ok').style.display = 'block';
+  arquivoAtual = f;
+  if (f.name.toLowerCase().endsWith('.csv')) {
+    const r = new FileReader();
+    r.onload = ev => { csvRaw = ev.target.result; arquivoTipo = 'csv'; verificar(); };
+    r.readAsText(f, 'latin1');
+  } else {
+    csvRaw = '__pdf__';
+    arquivoTipo = 'pdf';
+    verificar();
+  }
+}
+
+// LISTA DE EMPRESAS
+const EMPRESAS = [{"cod": 1534, "nome": "2 SHARE CONSULTING LTDA"}, {"cod": 1194, "nome": "3R FERRAMENTARIA LTDA"}, {"cod": 1586, "nome": "4D INVESTIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1441, "nome": "77 LOCAÇÃO DE MÁQUINAS E EQUIP LTDA"}, {"cod": 136, "nome": "A&C SERVIÇOS AUTOMOTIVOS LTDA (MATRIZ E FILIAL)"}, {"cod": 1255, "nome": "A&D TECNOLOGIA LTDA ME"}, {"cod": 68, "nome": "A. FEDRIGO & CIA LTDA"}, {"cod": 1397, "nome": "A4LS SERVIÇOS ADMINISTRATIVOS LTDA"}, {"cod": 1479, "nome": "AAL ADMINISTRAÇÃO DE EMPRESAS LTDA"}, {"cod": 1249, "nome": "ACI REPRESENTAÇÃO E ASSESSORIA LTDA (GRUPO GW DISTRIBUIÇÃO)"}, {"cod": 1381, "nome": "ACO GERENCIAMENTO DE PROCESSOS INDUSTRIAIS LTDA (GRUPO FORMPARTS)"}, {"cod": 1432, "nome": "ACQUAPLANT QUÍMICA DO BRASIL LTDA"}, {"cod": 672, "nome": "ACS & DS RESTAURANTES LTDA"}, {"cod": 467, "nome": "ADAMO RESTAURANTE LTDA"}, {"cod": 157, "nome": "ADMINISTRADORA DE BENS IMÓVEIS COLON LTDA"}, {"cod": 1289, "nome": "AFX COMÉRCIO DE GRELHAS E ESPETOS LTDA"}, {"cod": 1527, "nome": "AGORA SOLUÇÕES VISUAIS LTDA"}, {"cod": 1548, "nome": "AGSCAR AUTO CENTER LTDA"}, {"cod": 1230, "nome": "AJEH SERVIÇOS ADMINISTRATIVOS LTDA"}, {"cod": 444, "nome": "AJORPEME ASSOC DE JOINVILLE E REGIÃO DA PEQUENA, MICRO E MÉDIA EMPRESA"}, {"cod": 1094, "nome": "ALCIONI MARCONDES LTDA"}, {"cod": 1453, "nome": "ALECAR PARTICIPAÇÕES LTDA"}, {"cod": 1469, "nome": "ALEF PARTICIPAÇÕES LTDA (GRUPO GUINTHER)"}, {"cod": 1380, "nome": "ALTERNATIVA APOIO ADMINISTRATIVO LTDA (GRUPO FORMPARTS)"}, {"cod": 1347, "nome": "AM MANUTENÇÃO E INSTALAÇÃO DE MÁQUINAS E EQUIPAMENTOS INDUSTRIAIS LTDA"}, {"cod": 137, "nome": "AMANDA CONFECÇÕES LTDA"}, {"cod": 1010, "nome": "AMOR DA VOVÓ ALIMENTOS LTDA"}, {"cod": 63, "nome": "AMÉRICA HOTELARIA LTDA"}, {"cod": 73, "nome": "ANGELICO DE SOUZA RESTAURANTE LTDA"}, {"cod": 1546, "nome": "ANTARCTICA INCORPORADORA SPE"}, {"cod": 1564, "nome": "ASA COM MIRIAM LTDA"}, {"cod": 1389, "nome": "ASC ARQUITETURA CONSTRUTORA E INCORPORADORA LTDA"}, {"cod": 1492, "nome": "ASCM ADMINISTRADORA DE BENS LTDA"}, {"cod": 1400, "nome": "ASD EMPREEENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1583, "nome": "ASIA IMPORT COMERCIO DE BRINDES LTDA"}, {"cod": 1208, "nome": "ASSOCIAÇÃO ACOLHER JARDIM PARAÍSO"}, {"cod": 1590, "nome": "ASSOCIAÇÃO DE MORADORES DO BAIRRO SÃO MARCOS"}, {"cod": 1587, "nome": "ATENA ADMINISTRADORA DE BENS E PARTICIPAÇÕES LTDA"}, {"cod": 1393, "nome": "ATRIUM GERENCIAMENTOS DE PROCESSOS INDUSTRIAIS LTDA (GRUPO FORMPARTS)"}, {"cod": 1499, "nome": "AURORA HOLDING PATRIMONIAL LTDA"}, {"cod": 93, "nome": "AUTO POSTO ITINGA LTDA"}, {"cod": 1018, "nome": "AUTO POSTO MERCADO LTDA"}, {"cod": 329, "nome": "AUTO POSTO PETER PAN LTDA"}, {"cod": 254, "nome": "AUTO POSTO WALVILLE LTDA"}, {"cod": 1535, "nome": "AVF RESTAURANTE LTDA"}, {"cod": 1606, "nome": "AZAFRAN LTDA"}, {"cod": 1497, "nome": "BACHTOLD ADMINISTRADORA DE BENS LTDA"}, {"cod": 1183, "nome": "BADO SERVIÇOS LTDA"}, {"cod": 1550, "nome": "BARRIGA VERDE COOPERATIVA DE REFLORESTAMENTO (GRUPO COOPERLIPTO)"}, {"cod": 1385, "nome": "BASE3 MARKETING DIGITAL LTDA"}, {"cod": 1379, "nome": "BASEADM APOIO ADMINISTRATIVO LTDA (GRUPO FORMPARTS)"}, {"cod": 1598, "nome": "BATISTA E DORA SANTOS ADMINISTRADORA DE BENS LTDA (GRUPO REST GLÓRIA)"}, {"cod": 115, "nome": "BENEFICIAMENTO DE PEÇAS ALBANO LTDA"}, {"cod": 1458, "nome": "BH EMPREENDIMENTOS SPE LTDA"}, {"cod": 1146, "nome": "BISCAYANE HOLDING S.A."}, {"cod": 1239, "nome": "BLACK PRODUTORA LTDA"}, {"cod": 322, "nome": "BMA SISTEMAS LTDA"}, {"cod": 1556, "nome": "BMP ADMINISTRADORA DE BENS LTDA"}, {"cod": 904, "nome": "BOARETTO EMPREENDIMENTOS LTDA (GRUPO CONPLA)"}, {"cod": 1303, "nome": "BOARETTO IMOVEIS LTDA (GRUPO CONPLA)"}, {"cod": 1480, "nome": "BOEBEL HOLDING PATRIMONIAL LTDA"}, {"cod": 103, "nome": "BRASPEL ADMINISTRAÇÃO DE BENS LTDA"}, {"cod": 1222, "nome": "BRASPEL DISTRIBUIDORA LTDA"}, {"cod": 1414, "nome": "BRAZILIAN CUSTOMS BROKERAGE LTDA"}, {"cod": 1422, "nome": "BRAZILIAN GESTÃO E PARTICIPAÇÕES LTDA"}, {"cod": 1413, "nome": "BRAZILIAN SOURCING LTDA"}, {"cod": 1399, "nome": "BRAZILIAN TRADING IMPORTADORA E EXPORTADORA LTDA"}, {"cod": 287, "nome": "BRUFRAN USINAGEM E FERRAMENTARIA LTDA"}, {"cod": 1386, "nome": "BRUNO DE CAMPOS - SOCIEDADE INDIVIDUAL DE ADVOCACIA"}, {"cod": 1182, "nome": "BS - REFEIÇÕES RÁPIDAS LTDA"}, {"cod": 1559, "nome": "BUSS E ROCHA PARTICIPAÇÕES LTDA (GRUPO FORMAS)"}, {"cod": 289, "nome": "CAIUÁ ASSESSORIA E CONSULTORIA E PLANEJAMENTO LTDA"}, {"cod": 1276, "nome": "CANTINA DA ELIANE LTDA"}, {"cod": 1423, "nome": "CAP PRESTAÇÃO DE SERVIÇOS LTDA"}, {"cod": 134, "nome": "CAROL COMERCIAL CATARINENSE DE ROLAMENTOS LTDA"}, {"cod": 1078, "nome": "CASA DOS FILTROS PURIFICADORES DE ÁGUA LTDA"}, {"cod": 1402, "nome": "CDI - CONCEPT DESENVOLVIMENTO DE NEGOCIOS LTDA"}, {"cod": 1226, "nome": "CENTRAL DAS TELHAS COMÉRCIO DE MATERIAIS DE COSNTRUÇÃO LTDA"}, {"cod": 575, "nome": "CENTRAL DE COPIAS E ARTES LTDA (GRUPO CONSERVATÓRIO BELAS ARTES)"}, {"cod": 729, "nome": "CENTRAL DE TRADUÇÕES LTDA"}, {"cod": 108, "nome": "CENTRO DE ESTUDOS E ORIENTAÇÃO DA FAMILIA"}, {"cod": 1459, "nome": "CENTRO DE PESQUISAS E ESTUDOS EM PSICOLOGIA ANALÍTICA E FILOSOFIA LTDA"}, {"cod": 1460, "nome": "CFK CONSTRUTORA E INCORPORADORA LTDA"}, {"cod": 1584, "nome": "CHEFE REFEIÇÕES LTDA"}, {"cod": 579, "nome": "CIDRAL DA COSTA EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1570, "nome": "CIRÚRGICA JOINVILLE LTDA"}, {"cod": 1252, "nome": "CLINICA BIANCA GASTALDI LTDA"}, {"cod": 1485, "nome": "CLOVER PUB BAR LTDA"}, {"cod": 1578, "nome": "CM TRANSPORTE ESCOLAR E TURISMO LTDA"}, {"cod": 940, "nome": "COLISEU IMÓVEIS LTDA"}, {"cod": 205, "nome": "COLTEX INDÚSTRIA TÊXTIL LTDA"}, {"cod": 217, "nome": "COMERCIAL AGRÍCOLA POLZIN LTDA"}, {"cod": 1119, "nome": "COMERCIAL JSI LTDA"}, {"cod": 1407, "nome": "COMPREFER COMERCIO DE COMPRESSORES (GRUPO COMPRETEC)"}, {"cod": 1343, "nome": "COMPRETEC COMPRESSORES E FERRAMENTAS LTDA"}, {"cod": 1128, "nome": "COMSEG COMÉRCIO DE EQUIPAMENTOS LTDA"}, {"cod": 64, "nome": "COMSOLDA COMÉRCIO DE SOLDAS LTDA"}, {"cod": 646, "nome": "COMUNI SERVIÇOS ESPECIAIS LTDA"}, {"cod": 242, "nome": "COMÉRCIO DE FERRAGENS LEANDRO LTDA"}, {"cod": 7, "nome": "COMÉRCIO DE MATERIAIS DE CONSTRUÇÃO STEIL LTDA"}, {"cod": 364, "nome": "CONFECÇÕES MANNES LTDA"}, {"cod": 198, "nome": "CONFIANÇA REPRESENTAÇÕES LTDA"}, {"cod": 249, "nome": "CONPLA CONSTRUÇÕES E PLANEJAMENTO LTDA"}, {"cod": 171, "nome": "CONSERVATÓRIO BELAS ARTES DE JOINVILLE LTDA"}, {"cod": 389, "nome": "CONSTRUSILVA COMERCIO MATERIAIS DE CONSTRUÇÃO LTDA"}, {"cod": 1493, "nome": "CONTINENTAL FUTEBOL SETE"}, {"cod": 207, "nome": "CONTRA CHAMA COMÉRCIO DE EXTINTORES E EQUIPAMENTOS LTDA"}, {"cod": 1545, "nome": "COOPERATIVA DE REFLORESTAMENTO COOPERFLORESTAL"}, {"cod": 1546, "nome": "COOPERATIVA DE REFLORESTAMENTO INVESTLIPTO"}, {"cod": 1539, "nome": "COOPERJOI COOPERATIVA DE REFLORESTAMENTO"}, {"cod": 1544, "nome": "COOPERLIPTO S/A"}, {"cod": 1007, "nome": "COPAR ADMINISTRADORA DE BENS LTDA"}, {"cod": 274, "nome": "COPAR PEÇAS E SERVIÇOS LTDA"}, {"cod": 1450, "nome": "CORTENZ FERRO E AÇO LTDA"}, {"cod": 1551, "nome": "CP-PIEN S.A."}, {"cod": 1571, "nome": "CRB ESTRATEGIAS LTDA (GRUPO GW DISTRIBUIÇÃO)"}, {"cod": 1351, "nome": "CRIS ALE CONSULTORIA E ADMINISTRADORA DE BENS LTDA (GRUPO PANIF. DA VILA)"}, {"cod": 1391, "nome": "CT EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1616, "nome": "CUSTOMGUARD LTDA (GRUPO HPRIME)"}, {"cod": 1506, "nome": "DA LEANDRO SERVIÇOS DE CORTE E DOBRA LTDA"}, {"cod": 691, "nome": "DACOTA ADMINISTRADORA DE BENS LTDA"}, {"cod": 1398, "nome": "DAIANE CRISTINE HAWEROTH DECKER LTDA"}, {"cod": 1470, "nome": "DALET PARTICIPAÇÕES LTDA (GRUPO GUINTHER)"}, {"cod": 1478, "nome": "DANIEL ARTHUR GRABOWSKI LTDA"}, {"cod": 292, "nome": "DATASHOW – MEPOXAB SERVIÇOS AUDIOVISUAIS LTDA"}, {"cod": 446, "nome": "DATASOLVER TECNOLOGIA EM INFORMÁTICA LTDA"}, {"cod": 1335, "nome": "DCS SERVIÇOS ADMINISTRATIVOS LTDA"}, {"cod": 1181, "nome": "DEL CORONA & SCARDIGLI LOGÍSTICA  LTDA"}, {"cod": 1195, "nome": "DELCIO NEI FISCHER"}, {"cod": 1540, "nome": "DELIGEL DISTRIBUIDORA LTDA (MATRIZ - 5 FILIAIS)"}, {"cod": 333, "nome": "DELPA ALIMENTOS LTDA"}, {"cod": 1425, "nome": "DENTAL ART LABORATÓRIO DE PRÓTESE DENTÁRIA LTDA"}, {"cod": 42, "nome": "DEPÓSITO DE MATERIAIS DE CONSTRUÇÃO BARBIERI LTDA"}, {"cod": 1542, "nome": "DIR APOIO ADMINISTRATIVO LTDA"}, {"cod": 1265, "nome": "DISTRIBUIDORA COSTA LTDA"}, {"cod": 104, "nome": "DISTRIBUIDORA E LIVRARIA SEBO LTDA"}, {"cod": 23, "nome": "DISTRIBUIDORA MERKLE LTDA"}, {"cod": 184, "nome": "DOCES & SALGADOS BOETTCHER LTDA"}, {"cod": 326, "nome": "DONNA CLÍNICA GINECOLOGIA E OBSTETRÍCIA LTDA"}, {"cod": 1600, "nome": "DORIANE ROSALIA PAVINATO"}, {"cod": 698, "nome": "DORIVAL BRACH COMÉRCIO DE PEÇAS PARA VEÍCULOS LTDA"}, {"cod": 1169, "nome": "DOSE ANIMAL FARMÁCIA DE MANIPULAÇÃO VETERINÁRIA LTDA"}, {"cod": 1597, "nome": "DP MANUTENÇÕES DE EQUIPAMENTOS LTDA"}, {"cod": 1435, "nome": "DTW GESTÃO EMPRESARIAL E PARTICIPAÇÕES LTDA"}, {"cod": 1563, "nome": "DUARTE & HENDEL SERVIÇOS MEDICOS LTDA"}, {"cod": 1596, "nome": "E&P PIZZARIA LTDA"}, {"cod": 1490, "nome": "EASY COLETA E ENTREGA DE DOCUMENTOS LTDA"}, {"cod": 342, "nome": "EBNER MACIEL GONÇALVES"}, {"cod": 1519, "nome": "ECOBATTERY COMERCIO MANUTENCAO LTDA"}, {"cod": 1579, "nome": "ED CARLOS BORDIGNON DE OLIVEIRA"}, {"cod": 50, "nome": "EGÍDIO PAVANELLO E CIA LTDA"}, {"cod": 1160, "nome": "EHS EMPREENDIMENTOS E  PARTICIPAÇÕES LTDA"}, {"cod": 144, "nome": "ELDORADO CARTAZES E LOCAÇÕES LTDA"}, {"cod": 100, "nome": "ELDORADO PAINÉIS LTDA"}, {"cod": 1332, "nome": "ELIANE HOLTZ"}, {"cod": 1471, "nome": "ELUL PATICIPAÇÕES LTDA (GRUPO GUNTHER)"}, {"cod": 1330, "nome": "EMCASA CONSTRUTORA E INCORPORADORA LTDA (GRUPO CONSTRUSILVA)"}, {"cod": 1421, "nome": "EMPREGADOR FOLHA DE PAGAMENTO LTDA"}, {"cod": 1338, "nome": "EMPREGADOR LIMPEZA LTDA"}, {"cod": 1124, "nome": "EMPREGADOR RECURSOS HUMANOS LTDA"}, {"cod": 1233, "nome": "EMPREGADOR SERVIÇOS LTDA"}, {"cod": 149, "nome": "ENGEPRO PROJETOS E CONSULTORIA LTDA"}, {"cod": 1530, "nome": "EPITEX EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL LTDA"}, {"cod": 1241, "nome": "EPN RESTAURANTE LTDA"}, {"cod": 1333, "nome": "ERFOLG ADMINISTRADORA DE BENS LTDA (GRUPO TGL)"}, {"cod": 46, "nome": "EVELISE LAIS BREMEN NESI"}, {"cod": 9, "nome": "F.S. ADMINISTRAÇÃO DE IMÓVEIS LTDA"}, {"cod": 590, "nome": "FABRICA DE CACHAÇA DA VILA LTDA (GRUPO PANIF. DA VILA)"}, {"cod": 35, "nome": "FAMALAR COMERCIAL DE VARIEDADES LTDA"}, {"cod": 581, "nome": "FAMÍLIA KOCK ADMINISTRAÇÃO E PARTICIPAÇÕES LTDA"}, {"cod": 1024, "nome": "FAMÍLIA KOCK INCORPORADORA LTDA"}, {"cod": 1302, "nome": "FANE ADMINISTRADORA DE BENS LTDA (GRUPO CONSTRUSILVA)"}, {"cod": 1349, "nome": "FARM HILL SHOWS E EVENTOS LTDA (GRUPO CONPLA)"}, {"cod": 14, "nome": "FARMÁCIA BATISTA LTDA"}, {"cod": 418, "nome": "FERBAST LTDA"}, {"cod": 143, "nome": "FERRAMENTARIA FERMOLD LTDA"}, {"cod": 1615, "nome": "FINPO SOLUÇÕES EMPRESARIAIS LTDA"}, {"cod": 1439, "nome": "FLK HOLDING PATRIMONIAL LTDA"}, {"cod": 415, "nome": "FLYVILLE TRANSPORTES LTDA"}, {"cod": 1355, "nome": "FOCUS INTELIGÊNCIA IMOBILIÁRIA LTDA"}, {"cod": 1382, "nome": "FONTENELE NETO SOCIEDADE INDIVIDUAL DE ADVOCACIA"}, {"cod": 1291, "nome": "FONUM CALL CENTER LTDA ME"}, {"cod": 305, "nome": "FORMAS COMUNICAÇÃO VISUAL LTDA"}, {"cod": 1085, "nome": "FORMPARTS INDÚSTRIA METALÚRGICA LTDA"}, {"cod": 1345, "nome": "FRAGATAS FILMES LTDA"}, {"cod": 426, "nome": "FRANCISCO LIRA LTDA"}, {"cod": 1089, "nome": "FRANCO MÁQUINAS LTDA"}, {"cod": 736, "nome": "FRASSON ODONTOLOGIA S/S LTDA"}, {"cod": 1394, "nome": "FRESAR USINAGEM LTDA"}, {"cod": 1314, "nome": "FURAS USINAGEM LTDA"}, {"cod": 109, "nome": "FÁBRICA DE CALHAS LAR LTDA"}, {"cod": 1158, "nome": "GAB & LU EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1498, "nome": "GALANT CONSULTORIA E COM EXTERIOR LTDA"}, {"cod": 1260, "nome": "GBEM REPRESENTAÇÕES LTDA"}, {"cod": 1443, "nome": "GEBURT SERVIÇOS MÉDICOS LTDA"}, {"cod": 665, "nome": "GERACÓPIAS SERVIÇOS DE IMPRESSÕES E FOTOCÓPIAS LTDA"}, {"cod": 1320, "nome": "GINEMEDIC CLINICA DE GINECOLOGIA E OBSTETRÍCIA LTDA (GRUPO HOTEL VALE DAS HORTENCIAS)"}, {"cod": 1396, "nome": "GLORIA DELIVERY LTDA (GRUPO REST GLÓRIA)"}, {"cod": 1306, "nome": "GS ADMINISTRADORA DE RECURSOS LTDA (GRUPO SOUTEX)"}, {"cod": 1296, "nome": "GUARDIAN SISTEMAS CONTRA INCÊNDIO LTDA"}, {"cod": 1144, "nome": "GUIGA LEONI PARTICIPAÇÕES LTDA"}, {"cod": 243, "nome": "GUNTHER COMÉRCIO TECIDOS LTDA"}, {"cod": 1365, "nome": "GW DISTRIBUIÇÃO LTDA"}, {"cod": 356, "nome": "H&N PIZZARIA LTDA"}, {"cod": 297, "nome": "HACKBARTH SERV. TOPOGRÁFICOS, PROJETOS E EXECUÇÕES LTDA"}, {"cod": 1575, "nome": "HAK EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 1231, "nome": "HALIFAX REPRESENTAÇÃO E CONSULTORIA LTDA"}, {"cod": 1494, "nome": "HARAS FAMILY RANCH LTDA"}, {"cod": 1315, "nome": "HENRIQUE G NIEHUES EMPREENDIMENTOS LTDA"}, {"cod": 1083, "nome": "HENZ ENGª, CONSTRUTORA E ADM DE OBRAS LTDA"}, {"cod": 944, "nome": "HIDEFRAN FERRAMENTARIA LTDA"}, {"cod": 1520, "nome": "HILNAS ADMINISTRADORA DE BENS LTDA"}, {"cod": 1283, "nome": "HOLZ E CIDRAL ADVOGADOS ASSOCIADOS"}, {"cod": 649, "nome": "HOLZ-MADEIRA ADVOCACIA"}, {"cod": 689, "nome": "HOTEL DA VILA LTDA (GRUPO PANIF. DA VILA)"}, {"cod": 1319, "nome": "HOTEL VALE DAS HORTENCIAS ECOTURISMO E LAZER LTDA"}, {"cod": 1308, "nome": "HPRIME COMÉRCIO DE ACESSÓRIOS PARA TELEFONIA LTDA"}, {"cod": 1518, "nome": "HWC ADMINISTRADORA DE BENS LTDA (GRUPO HIDEFRAN)"}, {"cod": 1256, "nome": "HWS CONSUL EMPRESARIAL E ADMINISTRAÇÃO DE IMOVEIS LTDA"}, {"cod": 1602, "nome": "HZ EMREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 423, "nome": "I.B. ASSESSORIA LTDA"}, {"cod": 390, "nome": "IATE CLUBE ITAJUBA"}, {"cod": 1474, "nome": "IBRAHIM EMPREENDIMENTOS E PARTICIPAÇÕES LTDA (GRUPO CONSTRUSILVA)"}, {"cod": 1466, "nome": "IDEAL BTC LTDA"}, {"cod": 262, "nome": "IGLESIAS & CARDOSO ASSESSORIA E CONSULTORIA LTDA"}, {"cod": 95, "nome": "IGREJA BATISTA DO CENTENÁRIO EM JOIVILLE"}, {"cod": 728, "nome": "IGREJA EVANGÉLICA DEUS PRESENTE"}, {"cod": 1452, "nome": "IGREJA EVANGÉLICA SOPRO DE VIDA"}, {"cod": 1278, "nome": "IH ADMINISTRADORA DE BENS"}, {"cod": 1601, "nome": "IJMD PARTICIPAÇÕES LTDA"}, {"cod": 1515, "nome": "IKIGAI FOODS LTDA"}, {"cod": 686, "nome": "IMOBILIARIA CONQUISTA LTDA"}, {"cod": 1424, "nome": "IMOBILIÁRIA IMOVILLE LTDA"}, {"cod": 1411, "nome": "INACIO ESTACAS PRÉ-MOLDADAS LTDA"}, {"cod": 1607, "nome": "INCA LTDA"}, {"cod": 1608, "nome": "INCAMAR COMÉRCIO E EMPREENDIMENTOS LIMITADA"}, {"cod": 69, "nome": "INIL ADMINISTRAÇÃO DE IMÓVEIS LTDA"}, {"cod": 1580, "nome": "INOVA FERRAGENS LTDA"}, {"cod": 1395, "nome": "INSTITUTO BELAS ARTES DE JOINVILLE (GRUPO CONSERVATÓRIO BELAS ARTES)"}, {"cod": 376, "nome": "INVICTA COMUNICAÇÃO VISUAL LTDA"}, {"cod": 361, "nome": "INÁCIO ESTAQUEAMENTO LTDA"}, {"cod": 139, "nome": "ITALIANO REFEIÇÕES LTDA"}, {"cod": 1409, "nome": "J&M PIZZARIA LTDA"}, {"cod": 1376, "nome": "J. MARINHO E ASSOCIADOS - ESCRITÓRIO DE ADVOCACIA"}, {"cod": 1613, "nome": "J.M. PRESTAÇÃO DE SERVICOS LTDA"}, {"cod": 1496, "nome": "J.V. EMPREITEIRA DE MÃO DE OBRA LTDA"}, {"cod": 1191, "nome": "J.V.CONSTRUTORA E INCORPORADORA LTDA"}, {"cod": 638, "nome": "J7 COMERCIO INTERNACIONAL LTDA (GRUPO GW DISTRIBUIÇÃO)"}, {"cod": 1300, "nome": "JAQUELINE PANASOWICZ HWUNG"}, {"cod": 246, "nome": "JARDIM DE INFÂNCIA VIVA EU VIVA TU LTDA"}, {"cod": 1486, "nome": "JBR ADMINISTRADORA LTDA"}, {"cod": 503, "nome": "JDS EMPREITEIRA DE MÃO DE OBRA LTDA"}, {"cod": 1426, "nome": "JEPA MATERIAIS DE CONSTRUÇÃO LTDA"}, {"cod": 1392, "nome": "JJCN COMÉRCIO DE ÓTICA E RELOJOARIA LTDA"}, {"cod": 1461, "nome": "JJH ADMINSITRAÇÃO DE BENS LTDA"}, {"cod": 746, "nome": "JKS EMPREENDIMENTOS E ADMINISTRAÇÃO DE BENS IMÓVEIS LTDA"}, {"cod": 1523, "nome": "JL RAMOS ADMINISTRADORA DE BENS LTDA"}, {"cod": 388, "nome": "JM SOUZA ADMINISTRADORA DE BENS LTDA"}, {"cod": 1363, "nome": "JMC PARTICIPAÇÕES LTDA (GRUPO GW DISTRIBUIÇÃO)"}, {"cod": 1451, "nome": "JMP COMÉRCIO DE PRODUTOS NACIONAIS E IMPORTADOS LTDA"}, {"cod": 1427, "nome": "JMPA ELETROMÓVEIS LTDA"}, {"cod": 1340, "nome": "JN STEIL TRANSPORTES LTDA"}, {"cod": 1358, "nome": "JNS CONSULTORIA E ADMINISTRADORA DE BENS LTDA"}, {"cod": 466, "nome": "JNS DISTRIBUIDORA LTDA"}, {"cod": 1505, "nome": "JOINFLUX COFFEE LTDA"}, {"cod": 942, "nome": "JOINFLUX ESCOLA DE IDIOMAS LTDA"}, {"cod": 1060, "nome": "JOINFLUX NORTE ESCOLA DE IDIOMAS LTDA"}, {"cod": 1207, "nome": "JOITEC DIST DE PEÇAS (GRUPO COMPRETEC)"}, {"cod": 730, "nome": "JOVIER’S COMÉRCIO DE ÓTICA E RELOJOARIA LTDA"}, {"cod": 1585, "nome": "JPS ADMINISTRADORA DE BENS LTDA"}, {"cod": 1456, "nome": "JT COMPRESSORES LTDA (GRUPO COMPRETEC)"}, {"cod": 1603, "nome": "JUST BEAUTY LTDA"}, {"cod": 1565, "nome": "JUSTEN & MULLER EMPREENDIMENTOS E ADMINISTRAÇÃO DE BENS LTDA"}, {"cod": 1558, "nome": "KAIROS ASSESSORIA FINANCEIRA LTDA"}, {"cod": 1405, "nome": "KAJUVO CONSULTORIA E ADMINISTRADORA DE BENS LTDA"}, {"cod": 1484, "nome": "KRESS FARMACEUTICA S.A"}, {"cod": 83, "nome": "LABORATORIO BATISTA DE ANÁLISES CLÍNICAS LTDA"}, {"cod": 1483, "nome": "LAGOA PESCADOS Y MARISCOS RESTAURANTE LTDA"}, {"cod": 1072, "nome": "LAMOUR COMÉRCIO DE ÓTICA RELOJOARIA LTDA"}, {"cod": 1342, "nome": "LASE SYSTEM TECHNOLOGY LATAM LTDA"}, {"cod": 1465, "nome": "LC FAMILY LTDA  (GRUPO HIDEFRAN)"}, {"cod": 1533, "nome": "LC UPSKILL SOLUTIONS LTDA"}, {"cod": 338, "nome": "LEADBETTER SERVIÇOS LTDA"}, {"cod": 1042, "nome": "LEANDRO & LEANDRO LTDA"}, {"cod": 1356, "nome": "LEANDRO CONSULTORIA E ADMINISTRADORA DE BENS LTDA"}, {"cod": 1317, "nome": "LGM SERVIÇOS LTDA"}, {"cod": 1588, "nome": "LINDOMAR COMÉRCIO DE ALIMENTOS LTDA"}, {"cod": 1110, "nome": "LJ ADMINISTRADORA DE BENS LTDA"}, {"cod": 1502, "nome": "LMB GESTÃO EMPRESARIAL E PARTICIPAÇÕES LTDA"}, {"cod": 40, "nome": "LOJA NOSSA SENHORA APARECIDA LTDA"}, {"cod": 1447, "nome": "LOTHER PARTICIPAÇÕES LTDA"}, {"cod": 1604, "nome": "LOURDES SOARES DUARTE LTDA"}, {"cod": 1491, "nome": "LUCAS CONSULTORIAS ADMINISTRATIVAS LTDA"}, {"cod": 1372, "nome": "LUNES GREEN COMUNICAÇÃO VISUAL LTDA"}, {"cod": 1075, "nome": "LUVERTEX CONFECÇÕES LTDA"}, {"cod": 1605, "nome": "LUZZO BRINDES CORPORATIVOS LTDA"}, {"cod": 1582, "nome": "MABI SERVIÇOS ADMINISTRATIVOS LTDA"}, {"cod": 1367, "nome": "MACALI REPRESENTAÇÕES LTDA"}, {"cod": 445, "nome": "MADEIRAS E ESQUADRIAS OLIVEIRA LTDA"}, {"cod": 306, "nome": "MAGALHA VEICULOS LTDA"}, {"cod": 422, "nome": "MAIKON SIMÃO BREMEN"}, {"cod": 697, "nome": "MAIS TRANSPORTES RODOVIÁRIO DE CARGAS LTDA"}, {"cod": 1134, "nome": "MARCENARIA BECKER DA COSTA LTDA"}, {"cod": 354, "nome": "MARCENARIA HEIDEMANN LTDA"}, {"cod": 1437, "nome": "MARIA AÇAÍ FRANQUEADORA LTDA"}, {"cod": 1529, "nome": "MARIANA M NEGÓCIOS IMOBILIÁRIOS LTDA"}, {"cod": 1420, "nome": "MARIELLI LOJA DE CONFECÇÕES INFANTO JUVENIL LTDA"}, {"cod": 1312, "nome": "MASSAS DA VILA LTDA (GRUPO PANIF DA VILA)"}, {"cod": 1567, "nome": "MBONATTI ADMINISTRADORA DE BENS LTDA"}, {"cod": 1475, "nome": "MCE EMPREENDIMENTO E ADMINISTRADORA DE BENS LTDA"}, {"cod": 55, "nome": "MECÂNICA DE TORNOS SCHULZ LTDA"}, {"cod": 54, "nome": "MECÂNICA HFR LTDA"}, {"cod": 1569, "nome": "MEDJET LTDA"}, {"cod": 1341, "nome": "MEDVIDA SERVIÇOS MÉDICOS LTDA"}, {"cod": 1568, "nome": "MELLOS EMPREENDIMENOS E ADMINISTRAÇÃO DE BENS LTDA (GRUPO MELLOSCAR)"}, {"cod": 113, "nome": "MELLOSCAR COMÉRCIO DE AUTOMOVEIS LTDA"}, {"cod": 1329, "nome": "MENDONÇA MATERIAIS DE CONSTRUÇÃO LTDA (MATRIZ - 4 FILIAS)"}, {"cod": 106, "nome": "MENTA PURA COMÉRCIO DE CHOCOLATES LTDA"}, {"cod": 1536, "nome": "MESSIAS CASA & CONSTRUÇÃO LTDA"}, {"cod": 1292, "nome": "MESUM MANUTENÇÃO DE EQUIPS DE COMUNICAÇÃO LTDA"}, {"cod": 1352, "nome": "METAL PAZETO INDÚSTRIA E COM DE ESQUADRIAS METÁLICAS LTDA"}, {"cod": 1442, "nome": "MG LOCAÇÃO DE MÁQUINAS E EQUIPAMENTOS LTDA"}, {"cod": 244, "nome": "MICROIMAGEM GERENCIAMENTO DE IMAGENS LTDA"}, {"cod": 1093, "nome": "MJA USINAGEM LTDA"}, {"cod": 1331, "nome": "MM PARTICIPAÇÕES LTDA"}, {"cod": 1455, "nome": "MMLE PARTICIPAÇÕES LTDA"}, {"cod": 1223, "nome": "MN SOLUCOES E SERVIÇOS LTDA"}, {"cod": 340, "nome": "MO ARTE INDÚSTRIA MÓVEIS LTDA"}, {"cod": 1609, "nome": "MOELLER EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 469, "nome": "MOLAVILLE COMÉRCIO DE PEÇAS PARA CAMINHÕES LTDA"}, {"cod": 1199, "nome": "MOLD COMPANY FERRAMENTARIA LTDA"}, {"cod": 307, "nome": "MOLDTOOL FERRAMENTARIA LTDA"}, {"cod": 1528, "nome": "MONDEL LTDA"}, {"cod": 946, "nome": "MOTOFIL COMÉRCIO DE MÁQUINAS LTDA"}, {"cod": 350, "nome": "MPS MEDICINA PREVENTIVA A SAÚDE LTDA"}, {"cod": 1068, "nome": "MR EMPREENDIMENTOS S/S LTDA (GRUPO SOUTEX)"}, {"cod": 1532, "nome": "MSR ADMINISTRADORA DE BENS LTDA"}, {"cod": 1298, "nome": "MUEGGE SERVÇOS ADMINISTRATIVOS LTDA"}, {"cod": 720, "nome": "MULTISEG COMÉRCIO E EQUIPAMENTOS DE SEGURANÇA LTDA"}, {"cod": 1614, "nome": "MÔNICA JANESCH ARQUITETURA E DESIGN"}, {"cod": 1091, "nome": "NBC APOIO ADMINISTRATIVO E TREINAMENTO LTDDA"}, {"cod": 41, "nome": "NECKEL ADMINISTRADORA DE BENS E NEGÓCIOS LTDA"}, {"cod": 1514, "nome": "NECTAR ARTIGOS IMPORTADOS LTDA"}, {"cod": 1404, "nome": "NSJR JOINVILLE INCORPORADORA LTDA"}, {"cod": 473, "nome": "NUTRIJOI COMÉRCIO DE PRODUTOS AGROPECUÁRIOS LTDA"}, {"cod": 1133, "nome": "ODIN COMPRESSORES LTDA (GRUPO COMPRETEC)"}, {"cod": 1591, "nome": "ODIN TUBOS E CONEXÕES LTDA (GRUPO COMPRETEC)"}, {"cod": 166, "nome": "OFICINA DE CONSERTOS DE AUTOMÓVEIS VOSS LTDA"}, {"cod": 1522, "nome": "OLIVEIRA BORGES ADMINISTRADORA DE BENS LTDA"}, {"cod": 1247, "nome": "OSVALDO FRANCISCO JUNIOR - SOCIEDADE INDIVIDUAL DE ADVOCACIA"}, {"cod": 1524, "nome": "OTTO PARK LTDA"}, {"cod": 62, "nome": "P&F TRANSPORTES LTDA"}, {"cod": 1428, "nome": "PALINGUER COM. MATERIAIS DE CONSTRUÇÃO E GÊNEROS ALIMENTÍCIOS LTDA"}, {"cod": 165, "nome": "PANIFICADORA DA VILA II  LTDA"}, {"cod": 159, "nome": "PANIFICADORA DA VILA LTDA"}, {"cod": 224, "nome": "PANIFICADORA E CONFEITARIA CABRAL LTDA"}, {"cod": 281, "nome": "PANIFICADORA MAFRA LTDA"}, {"cod": 228, "nome": "PARQUE INTEGRADO DE ESPORTES, LAZER E CULTURA LTDA"}, {"cod": 402, "nome": "PAULINA CONFECÇÕES LTDA"}, {"cod": 1467, "nome": "PAVANELLO ADMINISTRADORA DE BENS LTDA"}, {"cod": 1541, "nome": "PAVILOCHE INDUSTRIAL LTDA"}, {"cod": 1589, "nome": "PAVINATO INTERMEDIAÇÃO DE NEGÓCIOS LTDA"}, {"cod": 1552, "nome": "PERINI ADMINISTRADORA DE BENS LTDA"}, {"cod": 1388, "nome": "PERSIHOUSE CORTINAS E PERSIANAS LTDA"}, {"cod": 1610, "nome": "PERÍMETRO EMPREENDIMENTOS LTDA"}, {"cod": 1369, "nome": "PHILIPPSEN COMÉRCIO DE MATERIAIS DE CONSTRUÇÃO LTDA"}, {"cod": 1521, "nome": "PIRUS CONSTRUTORA E INCORPORADORA LTDA"}, {"cod": 1316, "nome": "PLASGOMES BRINQUEDOS LTDA"}, {"cod": 596, "nome": "PLASNORTHON SUL INDUSTRIAL LTDA"}, {"cod": 657, "nome": "PLASTMIX IMPORTAÇÃO E EXPORTAÇÃO DE MOLDES LTDA"}, {"cod": 1517, "nome": "POLITOOLING POLIMENTOS E MOLDES PARA FERRAMENTARIA LTDA"}, {"cod": 269, "nome": "POLZIN ADMINISTRAÇÃO DE BENS IMOVEIS LTDA"}, {"cod": 1336, "nome": "POLZIN TRANSPORTES E SERVIÇOS LTDA"}, {"cod": 1572, "nome": "POMPEU INVESTIMENTOS FLORESTAIS LTDA"}, {"cod": 1416, "nome": "PONTUAL ADMINISTRATIVO LTDA (GRUPO SOUTEX)"}, {"cod": 1344, "nome": "PORTAL GOMES COMÉRCIO E SERVIÇOS AUTOMOTIVOS LTDA"}, {"cod": 158, "nome": "POSTO ALDI LTDA"}, {"cod": 1553, "nome": "PPN RESTAURANTE LTDA"}, {"cod": 1488, "nome": "PPRJ ADMINISTRADORA LTDA"}, {"cod": 1082, "nome": "PRB MANFREDINI ALIMENTOS LTDA"}, {"cod": 1334, "nome": "PRG REPRESENTAÇÕES LTDA"}, {"cod": 1384, "nome": "PROACTIVE CONS E ADMINISTRADORA DE BENS LTDA"}, {"cod": 498, "nome": "PROJINE SERVIÇOS LTDA"}, {"cod": 1286, "nome": "PROTETOR INTELIGENCIA EM TECNOLOGIA DE SEGURANÇA E TELECOM LTDA"}, {"cod": 401, "nome": "PRÍNCIPE DE JOINVILLE TUR MAR LTDA"}, {"cod": 1574, "nome": "PVDB EXECUTIVE LTDA"}, {"cod": 1290, "nome": "QUANTUS LTDA"}, {"cod": 130, "nome": "QUASA AMBIENTAL LTDA"}, {"cod": 641, "nome": "QUASA LTDA"}, {"cod": 1430, "nome": "R . MENKE ADVOCACIA"}, {"cod": 1531, "nome": "RD SISTEMAS CONTRA INCÊNDIO LTDA"}, {"cod": 258, "nome": "RENTVILLE TERRAPLENAGEM LOCAÇÕES LTDA (GRUPO TERRAPLENA)"}, {"cod": 1611, "nome": "RESERVA ARACÁRIA EMPREENDIMENTOS SPE LTDA"}, {"cod": 1293, "nome": "RESTAURANTE ALVORADA LTDA"}, {"cod": 1280, "nome": "RESTAURANTE CASA BENJAMIN GASTRONOMIA LTDA (GRUPO REST GLÓRIA)"}, {"cod": 1295, "nome": "RESTAURANTE ESPAÇO XV LTDA"}, {"cod": 218, "nome": "RESTAURANTE GLÓRIA LTDA"}, {"cod": 1555, "nome": "RFJ REFEIÇOES LTDA (GRUPO REST GLÓRIA)"}, {"cod": 1262, "nome": "RHEUMACLÍNICA LTDA"}, {"cod": 1566, "nome": "RNG DO BRASIL PARTICIPAÇÕES LTDA (GRUPO GW DISTRIBUIÇÃO)"}, {"cod": 1377, "nome": "ROGERIO SCHROEDER LTDA"}, {"cod": 220, "nome": "ROSSIL AUTOMAÇÃO INDUSTRIAL S/A"}, {"cod": 215, "nome": "ROSSIL INDUSTRIAL LTDA"}, {"cod": 970, "nome": "RS GRAPHICS COMÉRCIO DE ARTIGOS GRÁFICOS LTDA"}, {"cod": 1301, "nome": "RUBIM REPRESENTAÇÕES LTDA"}, {"cod": 465, "nome": "RUDEL REPRESENTAÇÕES  LTDA"}, {"cod": 150, "nome": "SANTOS DUMONT POSTAGENS LTDA"}, {"cod": 408, "nome": "SATES CENTRO DE SERVIÇOS LTDA"}, {"cod": 324, "nome": "SATES SERVIÇOS POSTAIS LTDA"}, {"cod": 1408, "nome": "SB EMPREENDIMENTOS E PARTICIPÇÕES LTDA"}, {"cod": 1368, "nome": "SCHREINER COMÉRCIO DE MATERIAIS DE CONSTRUÇÃO LTDA"}, {"cod": 1594, "nome": "SCOPO SANEAMENTO E ENGENHARIA LTDA"}, {"cod": 1097, "nome": "SCOPUM  GERECIAMENTO DE PROJETOS LTDA"}, {"cod": 1123, "nome": "SEG TRANSPORTES E LOCAÇÕES LTDA"}, {"cod": 1106, "nome": "SEVEN GROUP CORRETORA DE SEGUROS S/S"}, {"cod": 1065, "nome": "SEVERINO MARTINS PARTICIPAÇÕES LTDA"}, {"cod": 1557, "nome": "SH CONSULTORIA EMPRESARIAL LTDA (GRUPO HOLZ E CIDRAL)"}, {"cod": 680, "nome": "SINDICATO IND SER CAR TAN MAD EST SC"}, {"cod": 202, "nome": "SIPREVI INSTALAÇÕES INDUSTRIAIS LTDA"}, {"cod": 1599, "nome": "SIS-DM TECH LTDA"}, {"cod": 1595, "nome": "SJP SERVIÇOS LTDA"}, {"cod": 1417, "nome": "SOLLEM COMÉRCIO DE VEÍCULOS LTDA (GRUPO MELLOSCAR)"}, {"cod": 16, "nome": "SOTERO ADMINISTADORA DE BENS LTDA"}, {"cod": 231, "nome": "SOUTEX INDUSTRIA TEXTIL LTDA"}, {"cod": 1318, "nome": "SPEE ODONTOLOGIA AVANÇADA LTDA"}, {"cod": 1446, "nome": "STADELHOFER & AMARANTE PARTICIPAÇÕES LTDA"}, {"cod": 387, "nome": "STEIL & STEIL LTDA"}, {"cod": 1543, "nome": "SUPERGEL TRANSPORTES LTDA"}, {"cod": 1098, "nome": "SUSHI HARU RESTAURANTE LTDA"}, {"cod": 637, "nome": "SUSTENTARE EDUCACIONAL LTDA"}, {"cod": 501, "nome": "SUX DO BRASIL TÊXTIL LTDA (GRUPO SOUTEX)"}, {"cod": 1279, "nome": "SVC ADMINISTRADORA DE BENS LTDA"}, {"cod": 1472, "nome": "TAMUZ PARTICIPAÇÕES LTDA (GRUPO GUINTHER)"}, {"cod": 938, "nome": "TECHNOFIL SERVIÇOS INDUSTRIAIS LTDA"}, {"cod": 714, "nome": "TELHAS NOBRES COMÉRCIO DE MATERIAL DE CONSTRUÇÃO LTDA"}, {"cod": 1021, "nome": "TERRAPLENA ENGENHARIA LTDA"}, {"cod": 476, "nome": "TGL ADMINISTRADORA DE BENS LTDA"}, {"cod": 1410, "nome": "THE ONE CORRETAGEM DE IMOVEIS LTDA"}, {"cod": 951, "nome": "THERMAS DE JOINVILLE LTDA"}, {"cod": 1501, "nome": "TOP 6 HOLDING EMPRESARIAL LTDA"}, {"cod": 902, "nome": "TOP GRAPHICS COMERCIAL LTDA"}, {"cod": 1200, "nome": "TOP LINE FERRAMENTARIA DE MOLDES LTDA"}, {"cod": 1203, "nome": "TRANSLEVE TRANSPORTES LTDA"}, {"cod": 1433, "nome": "TRIO COMPANY INDUSTRIA LTDA"}, {"cod": 1507, "nome": "TRY INJETADOS LTDA"}, {"cod": 383, "nome": "TURISVILLE TRANSPORTE E TURISTMO LTDA"}, {"cod": 123, "nome": "TVI TRANSPORTES LTDA"}, {"cod": 1237, "nome": "UAU CINE TV LTDA"}, {"cod": 1436, "nome": "ULTRA TREINAMENTO PERSONALIZADO LTDA"}, {"cod": 1612, "nome": "UNO INCORPORADORA LTDA"}, {"cod": 1104, "nome": "VALDINEO PEREIRA"}, {"cod": 147, "nome": "VALE CATARINENSE MÍDIA EXTERIOR LTDA"}, {"cod": 163, "nome": "VAMA INDUSTRIAL LTDA"}, {"cod": 1419, "nome": "VAZATO CAÇA VAZAMENTOS LTDA"}, {"cod": 1560, "nome": "VERSATIL BUILDING LTDA"}, {"cod": 1500, "nome": "VERSATIL COMÉRCIO E DISTRIBUIDORA DE AÇO LTDA"}, {"cod": 1562, "nome": "VERSATIL LOG LTDA"}, {"cod": 1561, "nome": "VERSATIL MACHINES LTDA"}, {"cod": 1554, "nome": "VILA CAMBARA EMPREENDIMENTO IMOBILIÁRIO SPE LTDA"}, {"cod": 1581, "nome": "VISIONARY PARTICIPAÇÕES S/A"}, {"cod": 1487, "nome": "VWC ADMINISTRAÇÃO DE BENS E PARTICIPAÇÃO LTDA"}, {"cod": 253, "nome": "WALDIR KARNOPP REPRESENTAÇÕES LTDA"}, {"cod": 1593, "nome": "WALTRICK PRESTAÇÕES DE SERVIÇOS LTDA"}, {"cod": 1489, "nome": "WAVES PARTICIPAÇÕES LTDA"}, {"cod": 8, "nome": "WELLCOME LTDA"}, {"cod": 102, "nome": "WG REPRESENTAÇÕES LTDA"}, {"cod": 1370, "nome": "WINEM CONSULTORIA E ADMINISTRADORA DE BENS LTDA"}, {"cod": 580, "nome": "WINTER EMPREENDIMENTOS E PARTICIPAÇÕES LTDA"}, {"cod": 432, "nome": "WINTER INDUSTRIAL LTDA"}, {"cod": 1511, "nome": "WORDWIDE TRUST TRADE LTDA"}, {"cod": 1288, "nome": "XPETO COMÉRCIO DE GRELHAS E ESPETO LTDA"}, {"cod": 101, "nome": "YAMAGUCHI ADMINISTRADORA DE BENS LTDA"}, {"cod": 1481, "nome": "ZAV GROUP S/A"}, {"cod": 1054, "nome": "ZELINHA BABY LTDA"}];
+
+let sugestaoAtiva = -1;
+
+function filtrarEmpresas(q) {
+  const box = document.getElementById('sugestoes');
+  if (!q || q.length < 2) { box.style.display='none'; return; }
+  const matches = EMPRESAS.filter(e => e.nome.toUpperCase().includes(q.toUpperCase())).slice(0, 8);
+  if (!matches.length) { box.style.display='none'; return; }
+  sugestaoAtiva = -1;
+  box.innerHTML = matches.map((e,i) => `
+    <div class="sug-item" data-i="${i}" data-cod="${e.cod}" data-nome="${e.nome}"
+      onclick="selecionarEmpresa('${e.nome.replace(/'/g,"\\'")}',${e.cod})"
+      onmouseover="this.style.background='var(--laranja-light)'"
+      onmouseout="this.style.background='white'"
+      style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--text)">${e.nome}</span>
+      <span style="color:var(--text2);font-family:monospace;font-size:11px">${e.cod}</span>
+    </div>`).join('');
+  box.style.display='block';
+}
+
+function navSugestoes(e) {
+  const box = document.getElementById('sugestoes');
+  const items = box.querySelectorAll('.sug-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { sugestaoAtiva = Math.min(sugestaoAtiva+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { sugestaoAtiva = Math.max(sugestaoAtiva-1, 0); }
+  else if (e.key === 'Enter' && sugestaoAtiva >= 0) {
+    const it = items[sugestaoAtiva];
+    selecionarEmpresa(it.dataset.nome, parseInt(it.dataset.cod));
+    e.preventDefault(); return;
+  } else if (e.key === 'Escape') { box.style.display='none'; return; }
+  items.forEach((it,i) => it.style.background = i===sugestaoAtiva ? 'var(--laranja-light)' : 'white');
+  if (sugestaoAtiva>=0) items[sugestaoAtiva].scrollIntoView({block:'nearest'});
+}
+
+function selecionarEmpresa(nome, cod) {
+  document.getElementById('inp-empresa').value = nome;
+  document.getElementById('inp-cod-empresa').value = cod;
+  document.getElementById('sugestoes').style.display = 'none';
+  verificar();
+}
+
+// Fecha sugestões ao clicar fora
+document.addEventListener('click', e => {
+  if (!e.target.closest('#inp-empresa') && !e.target.closest('#sugestoes'))
+    document.getElementById('sugestoes').style.display = 'none';
+});
+
+// Inicializa contador ao carregar
+document.addEventListener('DOMContentLoaded', () => { atualizarContadorRegras(); });
+
+function verificar() {
+  const ok = csvRaw && document.getElementById('inp-cod-empresa').value.trim() && document.getElementById('inp-cod-banco').value.trim();
+  document.getElementById('btn-proc').disabled = !ok;
+}
+
+async function processar() {
+  const banco = document.getElementById('inp-cod-banco').value.trim();
+  document.getElementById('btn-proc').disabled = true;
+
+  const cont = document.getElementById('content');
+  cont.innerHTML = `
+    <div class="accent-bar"></div>
+    <div class="processing">
+      <div class="spinner"></div>
+      <div class="proc-label" id="proc-label">Processando extrato...</div>
+      <div class="proc-steps">
+        <div class="proc-step active" id="ps1"><div class="sdot"></div>Lendo arquivo</div>
+        <div class="proc-step" id="ps2"><div class="sdot"></div>Extraindo lançamentos</div>
+        <div class="proc-step" id="ps3"><div class="sdot"></div>Aplicando regras contábeis</div>
+        <div class="proc-step" id="ps4"><div class="sdot"></div>Cruzando com balancete</div>
+        <div class="proc-step" id="ps5"><div class="sdot"></div>Gerando prévia para revisão</div>
+      </div>
+    </div>`;
+
+  const tick=(a,b)=>{
+    const el=document.getElementById(a);
+    if(el){el.classList.remove('active');el.classList.add('done');el.querySelector('.sdot').style.background='var(--green)';}
+    if(b){const n=document.getElementById(b);if(n)n.classList.add('active');}
+  };
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const setLabel=t=>{ const el=document.getElementById('proc-label'); if(el) el.textContent=t; };
+
+  await wait(400); tick('ps1','ps2');
+
+  if (csvRaw && csvRaw !== '__pdf__') {
+    // CSV normal
+    await wait(500); tick('ps2','ps3');
+    await wait(600); tick('ps3','ps4');
+    await wait(400); tick('ps4','ps5');
+    await wait(300); tick('ps5',null);
+    lancamentos = parsearCSV(csvRaw, banco);
+  } else if (arquivoAtual) {
+    // PDF ou imagem — usa IA
+    setLabel('Enviando para a IA ler o extrato...');
+    tick('ps2', 'ps3');
+    try {
+      lancamentos = await lerPDFcomIA(arquivoAtual, banco);
+      setLabel('Aplicando regras contábeis...');
+      tick('ps3','ps4');
+      await wait(400);
+      tick('ps4','ps5');
+      await wait(300);
+      tick('ps5',null);
+    } catch(e) {
+      cont.innerHTML = `<div class="accent-bar"></div><div class="empty-state"><div class="e-icon">⚠️</div><p style="color:var(--red)">${e.message}</p><p style="margin-top:8px;font-size:12px;color:var(--text2)">Verifique sua conexão e tente novamente</p></div>`;
+      document.getElementById('btn-proc').disabled = false;
+      return;
+    }
+  } else {
+    lancamentos = gerarDemo(banco);
+  }
+
+  await wait(300);
+  renderTabela();
+}
+
+async function lerPDFcomIA(arquivo, banco) {
+  const codEmp = document.getElementById('inp-cod-empresa').value.trim();
+  const nomeEmp = document.getElementById('inp-empresa').value.trim();
+
+  // Converte arquivo para base64
+  const base64 = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = () => rej(new Error('Erro ao ler o arquivo'));
+    r.readAsDataURL(arquivo);
+  });
+
+  const isPDF = arquivo.name.toLowerCase().endsWith('.pdf');
+  const mediaType = isPDF ? 'application/pdf' : 
+                    arquivo.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+  const prompt = `Você é um especialista em extratos bancários brasileiros. Analise este extrato bancário e extraia TODOS os lançamentos.
+
+Para cada lançamento, retorne um JSON array com objetos no formato:
+{
+  "data": "DD/MM/AAAA",
+  "descricao": "descrição completa do lançamento",
+  "valor": 123.45
+}
+
+REGRAS IMPORTANTES:
+- valor POSITIVO = entrada de dinheiro (crédito na conta)
+- valor NEGATIVO = saída de dinheiro (débito na conta)
+- Inclua TODOS os lançamentos, sem exceção
+- Não inclua saldo anterior nem saldo final, apenas os lançamentos
+- Retorne APENAS o JSON array, sem texto adicional, sem markdown, sem explicações`;
+
+  const response = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      messages: [{
+        role: 'user',
+        content: [
+          isPDF ? {
+            type: 'document',
+            source: { type: 'base64', media_type: mediaType, data: base64 }
+          } : {
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: base64 }
+          },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error('Erro na API: ' + (err.error?.message || response.status));
+  }
+
+  const data = await response.json();
+  const texto = data.content.map(c => c.text || '').join('');
+
+  let lançs;
+  try {
+    const clean = texto.replace(/```json|```/g, '').trim();
+    lançs = JSON.parse(clean);
+  } catch(e) {
+    throw new Error('A IA não conseguiu estruturar os lançamentos. Tente novamente.');
+  }
+
+  if (!Array.isArray(lançs) || lançs.length === 0) {
+    throw new Error('Nenhum lançamento encontrado no extrato.');
+  }
+
+  // Aplica regras contábeis em cada lançamento
+  return lançs.map((l, idx) => {
+    const id = identificar(l.descricao || '', banco, codEmp);
+    return {
+      id: idx,
+      data: l.data || '',
+      desc: l.descricao || '',
+      valor: parseFloat(l.valor) || 0,
+      deb: id.deb,
+      cred: id.cred,
+      hist: id.hist,
+      conf: id.conf,
+      fonte: id.fonte
+    };
+  });
+}
+
+function parsearCSV(raw, banco) {
+  const codEmp = document.getElementById('inp-cod-empresa').value.trim();
+  return raw.split('\n').filter(l=>l.trim().startsWith('#')).map((linha,idx)=>{
+    const parts = linha.substring(1).split(';');
+    if(parts.length<5) return null;
+    const [data,debRaw,credRaw,valStr,desc] = parts;
+    const histRaw = parts[5]?parts[5].trim():'';
+    const val = parseFloat(valStr.replace(',','.'))||0;
+    const valor = debRaw.trim()===banco ? val : (credRaw.trim()===banco ? -val : val);
+    const id = identificar(desc.trim(), banco, codEmp);
+    return {
+      id:idx, data:fmtData(data.trim()), desc:desc.trim(), valor,
+      deb:debRaw.trim()||id.deb, cred:credRaw.trim()||id.cred,
+      hist:histRaw||id.hist,
+      conf:(debRaw.trim()&&credRaw.trim()) ? 99 : id.conf,
+      fonte: id.fonte||'regra'
+    };
+  }).filter(Boolean);
+}
+
+function fmtData(d) {
+  const p=d.split('/');
+  return p.length===3?`${p[0].padStart(2,'0')}/${p[1].padStart(2,'0')}/${p[2]}`:d;
+}
+
+function gerarDemo(banco) {
+  const demo=[
+    {desc:'RECEBIMENTO PIX 11849091994 Anderson Ghise',valor:29.70},
+    {desc:'LIQUIDACAO BOLETO 77873370000168 FANEZZE COM E P',valor:-479.80},
+    {desc:'LIQUIDACAO BOLETO 33016221000107 MITSUI SUMITOMO',valor:-166.63},
+    {desc:'IOF ADICIONAL PJ-CH. ESPE Iof.ADic.',valor:-268.13},
+    {desc:'TARIFA COM R LIQUIDACAO COB000001',valor:-2.68},
+    {desc:'DEB. FOLHA PAGTO 19P6---04',valor:-22835.73},
+    {desc:'DEBITO CONVENIOS ID 12800953 CIAAGUAS CASAN',valor:-365.92},
+    {desc:'LIQUIDACAO BOLETO 82602327000106 UNIMED DE JOINV',valor:-16258.98},
+    {desc:'DEBITO CONVENIOS ID 0000029280517 CELESC DISTRIB CELESC',valor:-529.71},
+    {desc:'DEBITO ARRECADACAO DAS',valor:-10022.71},
+    {desc:'RESG.APLIC.FIN.AVISO PREV CAPTACAO',valor:52633.19},
+    {desc:'TRANSF ENTRE CONTAS 03547815967 FABIANE EMILIA G SI00756',valor:-500.00},
+    {desc:'SICREDI DEBITO MASTER | SICREDI | 0001-46 777163801',valor:2135.34},
+    {desc:'PAGAMENTO PIX 63240446000103 63.240.446 ALEX MAR',valor:-1364.00},
+  ];
+  const codEmp = document.getElementById('inp-cod-empresa').value.trim();
+  return demo.map((l,idx)=>{
+    const id=identificar(l.desc,banco,codEmp);
+    return {id:idx,data:'01/12/2025',...l,deb:id.deb,cred:id.cred,hist:id.hist,conf:id.conf,fonte:id.fonte};
+  });
+}
+
+function renderTabela() {
+  const filtrados = lancamentos.filter(l=>{
+    if(filtro==='todos') return true;
+    if(filtro==='ok') return l.conf>=80;
+    if(filtro==='rev') return l.conf<80&&l.conf>0;
+    if(filtro==='err') return l.conf===0;
+    return true;
+  });
+
+  const total=lancamentos.length,
+        ok=lancamentos.filter(l=>l.conf>=80).length,
+        rev=lancamentos.filter(l=>l.conf<80&&l.conf>0).length,
+        err=lancamentos.filter(l=>l.conf===0).length;
+
+  document.getElementById('st-total').textContent=total;
+  document.getElementById('st-ok').textContent=ok;
+  document.getElementById('st-rev').textContent=rev;
+  document.getElementById('st-err').textContent=err;
+  document.getElementById('stats-section').style.display='block';
+  document.getElementById('btn-exp').disabled=false;
+
+  const ent=lancamentos.filter(l=>l.valor>0).reduce((s,l)=>s+l.valor,0);
+  const sai=lancamentos.filter(l=>l.valor<0).reduce((s,l)=>s+Math.abs(l.valor),0);
+
+  document.getElementById('content').innerHTML = `
+    <div class="accent-bar"></div>
+    <div class="table-toolbar">
+      <h2>Lançamentos <span style="color:var(--text2);font-weight:400">(${filtrados.length})</span></h2>
+      <div class="filter-group">
+        <button class="filter-btn ${filtro==='todos'?'active':''}" onclick="setFiltro('todos')">Todos (${total})</button>
+        <button class="filter-btn ${filtro==='ok'?'active':''}" onclick="setFiltro('ok')" style="${filtro!=='ok'?'color:var(--green)':''}">✓ OK (${ok})</button>
+        <button class="filter-btn ${filtro==='rev'?'active':''}" onclick="setFiltro('rev')" style="${filtro!=='rev'?'color:var(--amber)':''}">⚠ Revisar (${rev})</button>
+        <button class="filter-btn ${filtro==='err'?'active':''}" onclick="setFiltro('err')" style="${filtro!=='err'?'color:var(--red)':''}">✗ Sem conta (${err})</button>
+      </div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead><tr>
+          <th>Confiança</th><th>Data</th><th>Descrição do lançamento</th>
+          <th>Valor</th><th>Débito</th><th>Crédito</th><th>Hist.</th>
+        </tr></thead>
+        <tbody>${filtrados.map(renderLinha).join('')}</tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <span style="color:var(--text2)">${total} lançamentos processados</span>
+      <span>Entradas: <span class="ft c-green">R$ ${ent.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></span>
+      <span>Saídas: <span class="ft c-red">R$ ${sai.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></span>
+      <span style="margin-left:auto;font-size:10px;color:var(--text3)">Corrija os campos marcados antes de exportar</span>
+    </div>`;
+}
+
+function renderLinha(l) {
+  const isAprendido = l.fonte === '⚡ aprendido' || l.fonte === 'aprendido';
+  const badge = l.conf>=90 ? `<span class="badge badge-green" title="${isAprendido?'Aprendido por correção anterior':'Regra fixa'}">${isAprendido?'⚡ ':''}${l.conf}%</span>`
+              : l.conf>=70 ? `<span class="badge badge-amber">${l.conf}%</span>`
+              : l.conf>0  ? `<span class="badge badge-amber">${l.conf}%</span>`
+                           : `<span class="badge badge-red">—</span>`;
+  const vc=l.valor>0?'pos':'neg';
+  const vf=(l.valor>0?'+':'')+l.valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fc=l.conf===0?'err':l.conf<70?'warn':'';
+  const rc=l.conf===0?'row-err':l.conf<70?'row-warn':'';
+  const ds=l.desc.length>50?l.desc.substring(0,50)+'…':l.desc;
+  const ndeb=nomeConta(l.deb), ncred=nomeConta(l.cred);
+  return `<tr class="${rc}" data-id="${l.id}">
+    <td>${badge}</td>
+    <td class="cell-date">${l.data}</td>
+    <td><div class="cell-desc" title="${l.desc}">${ds}</div></td>
+    <td class="cell-val ${vc}">${vf}</td>
+    <td>
+      <input class="editable ${fc}" value="${l.deb}" title="${ndeb}" onchange="upd(${l.id},'deb',this.value)">
+      ${ndeb?`<div style="font-size:10px;color:var(--text2);margin-top:2px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ndeb}">${ndeb}</div>`:''}
+    </td>
+    <td>
+      <input class="editable ${fc}" value="${l.cred}" title="${ncred}" onchange="upd(${l.id},'cred',this.value)">
+      ${ncred?`<div style="font-size:10px;color:var(--text2);margin-top:2px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ncred}">${ncred}</div>`:''}
+    </td>
+    <td><input class="editable editable-sm ${fc}" value="${l.hist}" onchange="upd(${l.id},'hist',this.value)"></td>
+  </tr>`;
+}
+
+function setFiltro(f){filtro=f;renderTabela();}
+function upd(id,campo,val){
+  const l=lancamentos.find(x=>x.id===id);
+  if(!l) return;
+  l[campo]=val;
+  l.conf=99;
+  l.fonte='aprendido';
+  // Salva aprendizado quando usuário corrige qualquer campo
+  const codEmp = document.getElementById('inp-cod-empresa').value.trim();
+  registrarAprendizado(l.desc, codEmp, l.deb, l.cred, l.hist);
+  atualizarContadorRegras();
+  // Atualiza visual da célula
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if(row) {
+    row.querySelectorAll('.editable').forEach(i=>i.classList.remove('warn','err'));
+    const badge = row.querySelector('.badge');
+    if(badge){ badge.className='badge badge-green'; badge.textContent='99%'; }
+  }
+}
+
+function exportar() {
+  const codEmp=document.getElementById('inp-cod-empresa').value.trim()||'1';
+  const codEstab=codEmp;
+  const nome=document.getElementById('inp-empresa').value||'empresa';
+  const linhas=lancamentos.map(l=>
+    `#${l.data};${l.deb};${l.cred};${Math.abs(l.valor).toFixed(2).replace('.',',')};${l.desc};${l.hist};${codEmp};`
+  );
+  const blob=new Blob([linhas.join('\n')],{type:'text/plain;charset=latin1'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${nome.replace(/\s+/g,'_')}_qestor.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
