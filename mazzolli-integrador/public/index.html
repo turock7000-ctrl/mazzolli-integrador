@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -674,7 +673,7 @@ REGRAS IMPORTANTES:
 - Não inclua saldo anterior nem saldo final, apenas os lançamentos
 - Retorne APENAS o JSON array, sem texto adicional, sem markdown, sem explicações`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
